@@ -118,12 +118,11 @@ import time
 from torch.optim.lr_scheduler import LambdaLR
 import pandas as pd
 import altair as alt
-from torchtext.data.functional import to_map_style_dataset
 from torch.utils.data import DataLoader
 from torchtext.vocab import build_vocab_from_iterator
 import torchtext.datasets as datasets
 import spacy
-import GPUtil
+from pyrsmi import rocml
 import warnings
 from torch.utils.data.distributed import DistributedSampler
 import torch.distributed as dist
@@ -1581,13 +1580,12 @@ def create_dataloaders(
         language_pair=("de", "en")
     )
 
-    train_iter_map = to_map_style_dataset(
-        train_iter
-    )  # DistributedSampler needs a dataset len()
+    train_iter_map = list(train_iter)
+    # DistributedSampler needs a dataset len()
     train_sampler = (
         DistributedSampler(train_iter_map) if is_distributed else None
     )
-    valid_iter_map = to_map_style_dataset(valid_iter)
+    valid_iter_map = list(valid_iter)
     valid_sampler = (
         DistributedSampler(valid_iter_map) if is_distributed else None
     )
@@ -1608,6 +1606,32 @@ def create_dataloaders(
     )
     return train_dataloader, valid_dataloader
 
+def show_amd_utilization():
+    rocml.smi_initialize()
+    try:
+        device_count = rocml.smi_get_device_count()
+        # GPUtil Header Format
+        print("ID  GPU  MEM  TEM  NAME")
+
+        for i in range(device_count):
+            # Fetch Metrics
+            util = rocml.smi_get_device_utilization(i)
+            temp = rocml.smi_get_device_temperature(i, 0) # 0 is typically the Edge temperature
+
+            mem_total = rocml.smi_get_device_memory_total(i)
+            mem_used = rocml.smi_get_device_memory_used(i)
+            # GPUtil uses decimal percentage (e.g., 0.10 for 10%)
+            mem_util = mem_used / mem_total
+            gpu_util = util / 100
+
+            # Fetch Name (truncated if too long to keep formatting clean)
+            name = rocml.smi_get_device_name(i)[:15]
+
+            # Replicating the GPUtil print format string
+            print(f"{i:2d} {gpu_util:3.0%} {mem_util:3.0%} {temp:3.0f}C  {name}")
+
+    finally:
+        rocml.smi_shutdown()
 
 # %% [markdown] id="90qM8RzCTsqM"
 # ## Training the System
