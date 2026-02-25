@@ -121,6 +121,7 @@ import altair as alt
 from torch.utils.data import DataLoader
 from torchtext.vocab import build_vocab_from_iterator
 import torchtext.datasets as datasets
+from torchtext.data import Field
 import spacy
 from pyrsmi import rocml
 import warnings
@@ -1432,8 +1433,19 @@ def build_vocabulary(spacy_de, spacy_en):
     def tokenize_en(text):
         return tokenize(text, spacy_en)
 
+    # Create fields for source and target languages
+    # These are dummy fields - we only need them to load the data
+    SRC = Field()
+    TGT = Field()
+
     print("Building German Vocabulary ...")
-    train, val, test = datasets.Multi30k(language_pair=("de", "en"))
+    # Multi30k.splits returns (train, val, test) datasets
+    # exts are the file extensions: (source_ext, target_ext)
+    train, val, test = datasets.Multi30k.splits(
+        exts=('.de', '.en'),
+        fields=(SRC, TGT),
+        root='.data'
+    )
     vocab_src = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_de, index=0),
         min_freq=2,
@@ -1441,7 +1453,12 @@ def build_vocabulary(spacy_de, spacy_en):
     )
 
     print("Building English Vocabulary ...")
-    train, val, test = datasets.Multi30k(language_pair=("de", "en"))
+    # Reload data for target vocabulary
+    train, val, test = datasets.Multi30k.splits(
+        exts=('.de', '.en'),
+        fields=(SRC, TGT),
+        root='.data'
+    )
     vocab_tgt = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_en, index=1),
         min_freq=2,
@@ -1576,8 +1593,14 @@ def create_dataloaders(
             pad_id=vocab_src.get_stoi()["<blank>"],
         )
 
-    train_iter, valid_iter, test_iter = datasets.Multi30k(
-        language_pair=("de", "en")
+    # Create dummy fields for data loading
+    SRC = Field()
+    TGT = Field()
+
+    train_iter, valid_iter, test_iter = datasets.Multi30k.splits(
+        exts=('.de', '.en'),
+        fields=(SRC, TGT),
+        root='.data'
     )
 
     train_iter_map = list(train_iter)
