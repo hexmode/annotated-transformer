@@ -1,17 +1,21 @@
 [project]
 name = "annotated-transformer"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = ">=3.12.0, <3.13"
 dependencies = [
-    "torch==2.6.0+rocm6.2.4",
-    "torchvision==0.21.0+rocm6.2.4",
-    "torchaudio==2.6.0+rocm6.2.4",
+    "torch>=2.6.0",
+    "torchtext>=0.6.0",
     # Explicitly add the triton package required by torch
     "pytorch-triton-rocm; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "pyrsmi>=1.1.0",
     "pandas>=3.0.1",
     "altair>=6.0.0",
     "spacy>=3.8.11",
+    "de-core-news-sm",
+    "en-core-web-sm",
+    "nbconvert>=7.17.0",
+    "jupytext>=1.19.1",
+    "ipykernel>=7.2.0",
 ]
 
 [tool.uv.sources]
@@ -20,6 +24,8 @@ torchtext = { index = "pytorch-rocm" }
 torchvision = { index = "pytorch-rocm" }
 torchaudio = { index = "pytorch-rocm" }
 pytorch-triton-rocm = { index = "pytorch-rocm" }
+de-core-news-sm = { url = "https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-3.8.0/de_core_news_sm-3.8.0-py3-none-any.whl" }
+en-core-web-sm = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl" }
 
 [[tool.uv.index]]
 name = "pytorch-rocm"
