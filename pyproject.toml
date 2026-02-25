@@ -16,6 +16,7 @@ dependencies = [
     "nbconvert>=7.17.0",
     "jupytext>=1.19.1",
     "ipykernel>=7.2.0",
+    "torchdata>=0.11.0",
 ]
 
 [tool.uv.sources]

@@ -1441,11 +1441,7 @@ def build_vocabulary(spacy_de, spacy_en):
     print("Building German Vocabulary ...")
     # Multi30k.splits returns (train, val, test) datasets
     # exts are the file extensions: (source_ext, target_ext)
-    train, val, test = datasets.Multi30k.splits(
-        exts=('.de', '.en'),
-        fields=(SRC, TGT),
-        root='.data'
-    )
+    train, val, test = datasets.Multi30k(root='.data', split=('train', 'valid', 'test'))
     vocab_src = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_de, index=0),
         min_freq=2,
@@ -1454,11 +1450,7 @@ def build_vocabulary(spacy_de, spacy_en):
 
     print("Building English Vocabulary ...")
     # Reload data for target vocabulary
-    train, val, test = datasets.Multi30k.splits(
-        exts=('.de', '.en'),
-        fields=(SRC, TGT),
-        root='.data'
-    )
+    train, val, test = datasets.Multi30k(root='.data', split=('train', 'valid', 'test'))
     vocab_tgt = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_en, index=1),
         min_freq=2,
@@ -1597,11 +1589,7 @@ def create_dataloaders(
     SRC = Field()
     TGT = Field()
 
-    train_iter, valid_iter, test_iter = datasets.Multi30k.splits(
-        exts=('.de', '.en'),
-        fields=(SRC, TGT),
-        root='.data'
-    )
+    train_iter, valid_iter, test_iter = datasets.Multi30k(root='.data', split=('train', 'valid', 'test'))
 
     train_iter_map = list(train_iter)
     # DistributedSampler needs a dataset len()
